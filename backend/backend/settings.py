@@ -40,11 +40,14 @@ INSTALLED_APPS = [
     'rest_framework',
     'moodle_api',
     'django.middleware.csrf',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Debe ir antes de CommonMiddleware
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -127,3 +130,8 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Agregar al final
 CSRF_TRUSTED_ORIGINS = ['http://localhost:5173']  # Origen de Vite
+
+# Permitir solo este origen (frontend Vite)
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Puerto por defecto de Vite
+]

@@ -1,8 +1,7 @@
 from django.urls import path
-from .views import GetCoursesView, EnrollUserView,GetUserByUsernameView
+from .views import GetEnrolledCourses, GetUserSiteInfo
 
 urlpatterns = [
-    path('courses/', GetCoursesView.as_view(), name='get_courses'),
-    path('enroll/', EnrollUserView.as_view(), name='enroll_user'),
-    path('user/', GetUserByUsernameView.as_view(), name='get_user_by_username'),
+    path('site-info/', GetUserSiteInfo.as_view(), name='get_site_info'),
+    path('enrolled-courses/', GetEnrolledCourses.as_view(), name='get_enrolled_courses'),
 ]

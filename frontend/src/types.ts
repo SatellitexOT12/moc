@@ -1,7 +1,9 @@
-// src/types.ts
-export interface Moc {
-    id?: number;
-    title: string;
-    description?: string;
-    completed: boolean;
+interface Course {
+  id: number;
+  fullname: string;
+  summary: string;
+  courseimage?: string; // Opcional
+  startdate?: number;   // Timestamp Unix
+  enddate?: number;     // Timestamp Unix
+  categoryid?: number;  // ID de la categoría
 }
