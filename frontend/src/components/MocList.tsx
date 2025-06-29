@@ -8,10 +8,10 @@ interface Props {
 }
 
 export default function MocList({ mocs, onUpdate, onDelete }: Props) {
-  return (
+return (
     <ul className="space-y-4">
       {mocs.map(moc => (
-        <li key={moc.id} className="bg-white p-4 rounded-lg shadow-md flex justify-between items-center">
+        <li key={moc.id} className="bg-white p-4 rounded-lg shadow-md border border-gray-200 flex justify-between items-center">
           <div>
             <h3 className={`text-lg font-medium ${moc.completed ? 'line-through text-gray-400' : ''}`}>
               {moc.title}

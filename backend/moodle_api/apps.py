@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class GestMocConfig(AppConfig):
+class MoodleApiConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'gest_moc'
+    name = 'moodle_api'
