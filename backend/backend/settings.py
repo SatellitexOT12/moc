@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'moodle_api',
+    'users',
     'django.middleware.csrf',
     'corsheaders'
 ]
@@ -133,5 +134,8 @@ CSRF_TRUSTED_ORIGINS = ['http://localhost:5173']  # Origen de Vite
 
 # Permitir solo este origen (frontend Vite)
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Puerto por defecto de Vite
+    "http://localhost:5173",# Puerto por defecto de Vite
 ]
+CORS_ALLOW_CREDENTIALS = True  # Si usas sesión o cookies
+
+AUTH_USER_MODEL = 'users.CustomUser'

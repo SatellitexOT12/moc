@@ -1,4 +1,8 @@
+// src/components/CourseCard.tsx
 import type { Course } from '../types/course';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 interface CourseCardProps {
     course: Course;
@@ -6,14 +10,17 @@ interface CourseCardProps {
     onEnroll: (courseId: number) => void;
 }
 
-export default function CourseCard({ course, index, onEnroll }: CourseCardProps) {
-    const FALLBACK_COLORS = [
-        'bg-blue-500',
-        'bg-green-500',
-        'bg-purple-500',
-        'bg-red-500',
-        'bg-yellow-500'
-    ];
+const FALLBACK_COLORS = [
+    'bg-blue-500',
+    'bg-green-500',
+    'bg-purple-500',
+    'bg-red-500',
+    'bg-yellow-500'
+];
+
+export default function CourseCard({ course, index }: CourseCardProps) {
+    const navigate = useNavigate();
+    const { user } = useAuth();
 
     const isGeneratedImage = (url: string): boolean => {
         return url.includes('course.svg') || url.includes('generated');
@@ -25,9 +32,36 @@ export default function CourseCard({ course, index, onEnroll }: CourseCardProps)
         return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
     };
 
+    const handleEnrollClick = () => {
+        if (!user) {
+            alert('Debes iniciar sesión primero');
+            navigate('/login');
+            return;
+        }
+
+
+        axios.post('http://localhost:8000/api/enroll/', {
+            courseid: course.id
+
+        }, { withCredentials: true })
+            .then(res => {
+                alert(res.data.message || '¡Matrícula exitosa!');
+            })
+            .catch(err => {
+                alert('Error al matricularte');
+                console.error(err);
+            });
+
+
+    };
+
+    const handleExportClick = () => {
+    window.open(`http://localhost:8000/api/export/${course.id}/`);
+};
+
     return (
-        <div className="bg-white rounded-lg shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out overflow-hidden flex flex-col h-full">
-            {/* Imagen o fondo */}
+        <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 ease-in-out overflow-hidden flex flex-col h-full">
+            {/* Imagen o fondo con letra inicial */}
             <div className="h-40 relative flex items-center justify-center overflow-hidden">
                 {!course.courseimage || isGeneratedImage(course.courseimage) ? (
                     <div className={`absolute inset-0 ${FALLBACK_COLORS[index % FALLBACK_COLORS.length]} flex items-center justify-center`}>
@@ -54,13 +88,12 @@ export default function CourseCard({ course, index, onEnroll }: CourseCardProps)
                         {course.fullname}
                     </h2>
 
-                    {/* Fechas */}
+                    {/* Fechas de inicio y fin */}
                     <div className="text-sm text-gray-600 mb-4">
                         <p><strong>Inicio:</strong> {formatDate(course.startdate)}</p>
                         <p><strong>Fin:</strong> {formatDate(course.enddate)}</p>
                     </div>
-
-                    {/* Descripción con HTML limpiado */}
+                        {/* Descripción con HTML limpiado */}
                     <div
                         className="text-gray-600 text-sm line-clamp-4 mb-4"
                         dangerouslySetInnerHTML={{
@@ -69,14 +102,24 @@ export default function CourseCard({ course, index, onEnroll }: CourseCardProps)
                     />
                 </div>
 
-                {/* Botón matricularme */}
+                {/* Botón Matricularme */}
                 <button
                     type="button"
-                    onClick={() => onEnroll(course.id)}
+                    onClick={handleEnrollClick}
                     className="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200"
                 >
                     Matricularme
                 </button>
+
+                {/* Botón Exportar CSV */}
+                {user?.is_superuser && (
+                <button
+                    type="button"
+                    onClick={handleExportClick}
+                    className="mt-2 w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded"
+                >
+                    Exportar usuarios
+                </button>)}
             </div>
 
             {/* Footer con ID del curso */}
