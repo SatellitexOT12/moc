@@ -35,3 +35,7 @@
 .prose video {
   @apply w-full h-40 md:h-60 rounded-lg my-2;
 }
+
+.cursor-pointer {
+  cursor: pointer;
+}

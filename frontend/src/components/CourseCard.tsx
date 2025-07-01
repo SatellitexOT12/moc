@@ -92,6 +92,9 @@ export default function CourseCard({ course, index }: CourseCardProps) {
     const handleExportClick = () => {
         window.open(`http://localhost:8000/api/export/${course.id}/`);
     };
+    const handleGoToCourse = () => {
+        window.open(`https://cursos.uo.edu.cu/course/view.php?id=${course.id}`);
+    };
 
     const FALLBACK_COLORS = [
         'bg-blue-500',
@@ -187,9 +190,10 @@ export default function CourseCard({ course, index }: CourseCardProps) {
 
             {/* Footer con ID del curso */}
             <div className="bg-gray-100 px-6 py-3 border-t border-gray-200">
-                <span className="text-gray-700 text-sm font-medium">
-                    ID del curso: <span className="font-semibold">{course.id}</span>
-                </span>
+                <button className="text-blue-700 text-sm font-semibold cursor-pointer"
+                onClick={handleGoToCourse}>
+                    Ir al curso
+                </button>
             </div>
         </div>
     );
