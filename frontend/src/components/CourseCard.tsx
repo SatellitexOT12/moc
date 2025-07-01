@@ -7,6 +7,7 @@ import DOMPurify from 'dompurify';
 interface CourseCardProps {
     course: Course;
     index: number;
+    onEnroll: (courseId: number) => void;
 }
 
 export default function CourseCard({ course, index }: CourseCardProps) {
