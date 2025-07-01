@@ -23,3 +23,15 @@
 .animate-fade-in-down {
   animation: fade-in-down 0.3s ease-out forwards;
 }
+
+.prose {
+  @apply max-w-none;
+}
+
+.prose iframe {
+  @apply w-full h-40 md:h-60 rounded-lg shadow-md my-2;
+}
+
+.prose video {
+  @apply w-full h-40 md:h-60 rounded-lg my-2;
+}

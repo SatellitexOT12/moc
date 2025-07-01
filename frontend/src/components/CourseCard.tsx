@@ -1,36 +1,66 @@
-// src/components/CourseCard.tsx
 import type { Course } from '../types/course';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import DOMPurify from 'dompurify';
 
 interface CourseCardProps {
     course: Course;
     index: number;
-    onEnroll: (courseId: number) => void;
 }
-
-const FALLBACK_COLORS = [
-    'bg-blue-500',
-    'bg-green-500',
-    'bg-purple-500',
-    'bg-red-500',
-    'bg-yellow-500'
-];
 
 export default function CourseCard({ course, index }: CourseCardProps) {
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    const isGeneratedImage = (url: string): boolean => {
-        return url.includes('course.svg') || url.includes('generated');
+    // Validación de fechas
+    const formatDate = (timestamp: Date): string => {
+        return timestamp.toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
     };
 
-    const formatDate = (timestamp: number | undefined): string => {
+    const formatRawDate = (timestamp: number | undefined): string => {
         if (!timestamp) return 'No disponible';
         const date = new Date(timestamp * 1000);
-        return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+        return date.toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
     };
+
+    const getEnrollmentStatus = () => {
+        if (!course.startdate) {
+            return { status: 'closed' as const, message: 'Fecha de inicio no disponible' };
+        }
+
+        const startDate = new Date(course.startdate * 1000);
+        const now = new Date();
+
+        const enrollmentStart = new Date(startDate);
+        enrollmentStart.setDate(startDate.getDate() - 7);
+
+        let status: 'open' | 'closed' | 'started' = 'closed';
+        let message = '';
+
+        if (now >= enrollmentStart && now <= startDate) {
+            status = 'open';
+            message = `Período de matrícula: ${formatDate(enrollmentStart)} – ${formatDate(startDate)}`;
+        } else if (now < enrollmentStart) {
+            status = 'closed';
+            message = `Matrícula disponible desde ${formatDate(enrollmentStart)}`;
+        } else if (now > startDate) {
+            status = 'started';
+            message = `Curso iniciado el ${formatDate(startDate)}`;
+        }
+
+        return { status, message };
+    };
+
+    const { status: enrollmentStatus, message: enrollmentMessage } = getEnrollmentStatus();
 
     const handleEnrollClick = () => {
         if (!user) {
@@ -39,29 +69,43 @@ export default function CourseCard({ course, index }: CourseCardProps) {
             return;
         }
 
+        if (enrollmentStatus !== 'open') {
+            alert('La matrícula no está disponible ahora');
+            return;
+        }
 
-        axios.post('http://localhost:8000/api/enroll/', {
-            courseid: course.id
-
-        }, { withCredentials: true })
+        axios.post(
+            'http://localhost:8000/api/enroll/',
+            { courseid: course.id },
+            { withCredentials: true }
+        )
             .then(res => {
-                alert(res.data.message || '¡Matrícula exitosa!');
+                alert(res.data.message || '¡Te has matriculado correctamente!');
             })
             .catch(err => {
                 alert('Error al matricularte');
                 console.error(err);
             });
-
-
     };
 
     const handleExportClick = () => {
-    window.open(`http://localhost:8000/api/export/${course.id}/`);
-};
+        window.open(`http://localhost:8000/api/export/${course.id}/`);
+    };
+
+    const FALLBACK_COLORS = [
+        'bg-blue-500',
+        'bg-green-500',
+        'bg-purple-500',
+        'bg-red-500',
+        'bg-yellow-500'
+    ];
+
+    const isGeneratedImage = (url: string): boolean =>
+        url.includes('course.svg') || url.includes('generated');
 
     return (
         <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 ease-in-out overflow-hidden flex flex-col h-full">
-            {/* Imagen o fondo con letra inicial */}
+            {/* Imagen o fondo */}
             <div className="h-40 relative flex items-center justify-center overflow-hidden">
                 {!course.courseimage || isGeneratedImage(course.courseimage) ? (
                     <div className={`absolute inset-0 ${FALLBACK_COLORS[index % FALLBACK_COLORS.length]} flex items-center justify-center`}>
@@ -81,7 +125,7 @@ export default function CourseCard({ course, index }: CourseCardProps) {
                 )}
             </div>
 
-            {/* Contenido del curso */}
+            {/* Contenido principal */}
             <div className="flex flex-col flex-grow p-6">
                 <div>
                     <h2 className="text-xl font-semibold text-gray-800 mb-2 line-clamp-2">
@@ -90,36 +134,54 @@ export default function CourseCard({ course, index }: CourseCardProps) {
 
                     {/* Fechas de inicio y fin */}
                     <div className="text-sm text-gray-600 mb-4">
-                        <p><strong>Inicio:</strong> {formatDate(course.startdate)}</p>
-                        <p><strong>Fin:</strong> {formatDate(course.enddate)}</p>
+                        <p><strong>Inicio:</strong> {formatRawDate(course.startdate)}</p>
+                        <p><strong>Fin:</strong> {formatRawDate(course.enddate)}</p>
                     </div>
-                        {/* Descripción con HTML limpiado */}
+
+                    {/* Descripción del curso */}
                     <div
-                        className="text-gray-600 text-sm line-clamp-4 mb-4"
+                        className="text-gray-600 text-sm mb-4 prose max-w-none"
                         dangerouslySetInnerHTML={{
-                            __html: course.summary.replace(/\s(lang|xml:lang)="[^"]+"/g, ''),
+                            __html: DOMPurify.sanitize(course.summary)
                         }}
                     />
                 </div>
+            </div>
 
-                {/* Botón Matricularme */}
-                <button
-                    type="button"
-                    onClick={handleEnrollClick}
-                    className="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200"
-                >
-                    Matricularme
-                </button>
+            {/* Botones: Matricularse / Estado / Exportar */}
+            <div className="mt-auto border-t border-gray-200 bg-gray-50 px-6 py-4 flex flex-col gap-2">
+                {/* Botón o mensaje de matrícula */}
+                {enrollmentStatus === 'open' ? (
+                    <>
+                        <button
+                            onClick={handleEnrollClick}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200"
+                        >
+                            Matricularme
+                        </button>
+                        <p className="text-center text-xs text-gray-500">
+                            {enrollmentMessage}
+                        </p>
+                    </>
+                ) : enrollmentStatus === 'started' ? (
+                    <p className="text-center text-xs text-gray-500">
+                        Curso iniciado el {formatRawDate(course.startdate)}
+                    </p>
+                ) : (
+                    <p className="text-center text-xs text-gray-500">
+                        {enrollmentMessage}
+                    </p>
+                )}
 
                 {/* Botón Exportar CSV */}
                 {user?.is_superuser && (
-                <button
-                    type="button"
-                    onClick={handleExportClick}
-                    className="mt-2 w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded"
-                >
-                    Exportar usuarios
-                </button>)}
+                    <button
+                        onClick={handleExportClick}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded text-sm"
+                    >
+                        Exportar usuarios
+                    </button>
+                )}
             </div>
 
             {/* Footer con ID del curso */}
