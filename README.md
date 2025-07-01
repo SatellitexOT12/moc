@@ -16,7 +16,6 @@ Esta aplicación está construida con:
 - 👤 Perfil de usuario con campos personalizados (edad, país, propósito)
 - 📥 Matrícula disponible solo durante una ventana de tiempo: 1 semana antes del curso
 - 📁 Exportar listado de usuarios matriculados a CSV (solo superusuarios)
-- 🎬 Reproducir videos incrustados desde los resúmenes de cursos
 - 📱 Diseño responsive para móviles y tablets
 
 ---
